@@ -5,6 +5,7 @@ struct LocalizationTestView: View {
 
     @State private var name: String = "Алексей"
     @State private var showAlert = false
+	@State private var age = 21
     @State private var message = "Добро пожаловать"
 
     var body: some View {
@@ -16,6 +17,8 @@ struct LocalizationTestView: View {
                 Text("Добро пожаловать в приложение")
 
                 Text("Ваше имя: \(name)")
+				
+				Text("Киличество лет: \(age)!!!")
 
                 Text("Сегодня отличная погода")
 
