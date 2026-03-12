@@ -16,17 +16,21 @@ struct LocalizatorCLI: AsyncParsableCommand {
         abstract: "Swift source code localizer"
     )
 
-    @Argument(help: "Root folder with Swift files")
+    @Argument(help: "Папка или файл с которой нужно начинать поиск. По умолчанию текущая папка.")
     var path: String?
 
-    @Option(name: .shortAndLong, help: "Translations JSON file")
+    @Option(name: .shortAndLong, help: "JSON файл с переводами")
     var file: String = "metro_mobile_translations.json"
+	
+	@Option(name: .shortAndLong, help: "Префикс ключа по которому будут искаться существующие ключи. С него будут начинаться новые ключи")
+	var prefix: String
 
     func run() async throws {
 
         let rootPath = path ?? FileManager.default.currentDirectoryPath
 
         let service = LocalizationService(
+			prefix: prefix,
             rootPath: rootPath,
             filePath: file
         )

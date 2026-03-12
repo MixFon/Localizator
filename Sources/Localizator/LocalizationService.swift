@@ -7,18 +7,20 @@ import Translation
 
 final class LocalizationService {
 	
-	let rootPath: String
-	let filePath: String
+	private let prefix: String
+	private let rootPath: String
+	private let filePath: String
 	
-	init(rootPath: String, filePath: String) {
+	init(prefix: String, rootPath: String, filePath: String) {
+		self.prefix = prefix
 		self.rootPath = rootPath
 		self.filePath = filePath
 	}
 	
 	func run() async throws {
 		let filePath = "metro_mobile_translations.json" // Файл в корне проекта
-		let keyGenerator = KeyGenerator(prefix: "mm_velo")
-		let manager = LocalizationManager(keyGenerator: keyGenerator)
+		let keyGenerator = KeyGenerator(prefix: self.prefix)
+		let manager = LocalizationManager(prefix: self.prefix, keyGenerator: keyGenerator)
 		manager.load(filePath: filePath)
 		let fileScaner = FileScanner()
 		let files = fileScaner.collectSwiftFiles(from: rootPath)
@@ -44,7 +46,6 @@ final class LocalizationService {
 				let syntaxTree = Parser.parse(source: source)
 				let result = rewriter.visit(syntaxTree)
 				try "\(result)".write(to: file, atomically: true, encoding: .utf8)
-				print(result)
 				print("File processed")
 			} catch {
 				print("Error: \(error.localizedDescription)")

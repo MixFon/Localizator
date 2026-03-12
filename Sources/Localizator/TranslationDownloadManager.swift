@@ -99,11 +99,15 @@ protocol _LocalizationManager {
 
 final class LocalizationManager: _LocalizationManager {
 	
+	private let prefix: String
 	private var ruToKey: [String: String] = [:]
 	private let keyGenerator: _KeyGenerator
 	private var russianStrings: [String] = []
+	/// Префикс ключа для общих переводов
+	private let commonPrefix: String = "mm_metro"
 	
-	init(keyGenerator: _KeyGenerator) {
+	init(prefix: String, keyGenerator: _KeyGenerator) {
+		self.prefix = prefix
 		self.keyGenerator = keyGenerator
 	}
 	
@@ -121,7 +125,9 @@ final class LocalizationManager: _LocalizationManager {
 					case .plural(_):
 						continue
 					case .text(let text):
-						ruToKey[text] = key
+						if key.contains(self.prefix) || key.contains(self.commonPrefix) {
+							ruToKey[text] = key
+						}
 					}
 				}
 			}
