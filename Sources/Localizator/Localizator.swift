@@ -13,7 +13,7 @@ struct Localizator {
 		? CommandLine.arguments[1]
 		: FileManager.default.currentDirectoryPath
 		let filePath = "metro_mobile_translations.json" // Файл в корне проекта
-		let keyGenerator = KeyGenerator()
+		let keyGenerator = KeyGenerator(prefix: "mm_velo")
 		let manager = LocalizationManager(keyGenerator: keyGenerator)
 		manager.load(filePath: filePath)
 		let fileScaner = FileScanner()
