@@ -13,6 +13,8 @@ protocol _StringLiteralWorker {
 	func prepareText(_ node: StringLiteralExprSyntax) -> String
 	/// Возвращает интероляцию. "Ваши имена \(name1), \(name2) сохранены" -> ["name1", "name2"]
 	func prepareInterpolation(_ node: StringLiteralExprSyntax) -> [String]
+	/// Проверяет, находится ли строковый литерал в методе, который нужно игнорировать
+	func isInsideIgnoredFunction(_ node: StringLiteralExprSyntax) -> Bool
 }
 
 final class StringLiteralWorker: _StringLiteralWorker {
@@ -49,5 +51,19 @@ final class StringLiteralWorker: _StringLiteralWorker {
 			}
 		}
 		return numberArgs
+		
+	}
+	
+	func isInsideIgnoredFunction(_ node: StringLiteralExprSyntax) -> Bool {
+		guard
+			let argument = node.parent?.parent?.as(LabeledExprSyntax.self),
+			let call = argument.parent?.parent?.as(FunctionCallExprSyntax.self),
+			let declRef = call.calledExpression.as(DeclReferenceExprSyntax.self)
+		else {
+			return false
+		}
+		
+		let name = declRef.baseName.text
+		return name == "print" || name == "debugPrint"
 	}
 }

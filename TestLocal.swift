@@ -7,6 +7,11 @@ struct LocalizationTestView: View {
     @State private var showAlert = false
 	@State private var age = 21
     @State private var message = "Добро пожаловать"
+	init() {
+		print("Эту строку нужно игнорировать")
+		debugPrint("И эту строку нужно игнорировать")
+		dump("Ну и эту тоже")
+	}
 
     var body: some View {
         NavigationView {
@@ -70,7 +75,6 @@ struct LocalizationTestView: View {
                 }
 
                 Text(message)
-
             }
             .navigationTitle("Главный экран")
             .padding()
