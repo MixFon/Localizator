@@ -26,11 +26,11 @@ final class KeyGenerator: _KeyGenerator {
 	}
 	
 	func key(for string: String) async -> String {
-		let normalized = string.replacingOccurrences(
-			of: "%\\d+\\$s",
-			with: "",
-			options: .regularExpression
-		).filter { $0.isLetter || $0.isWhitespace }
+		let normalized = string
+			.replacingOccurrences(of: "%\\d+\\$s",with: "",options: .regularExpression)
+			.replacingOccurrences(of: "\n", with: "")
+			.replacingOccurrences(of: "\t", with: "")
+			.filter { $0.isLetter || $0.isWhitespace }
 		var translated: [String] = []
 		for word in normalized.split(separator: " ").prefix(5).map( String.init ) {
 			do {

@@ -24,7 +24,7 @@ struct Localizator {
 			do {
 				let source = try String(contentsOf: file, encoding: .utf8)
 				let syntaxTree = Parser.parse(source: source)
-				let result = prepareRewriter.visit(syntaxTree)
+				_ = prepareRewriter.visit(syntaxTree)
 				print("File processed")
 			} catch {
 				print("Error: \(error.localizedDescription)")
@@ -33,7 +33,7 @@ struct Localizator {
 		
 		await manager.translating()
 		
-		let rewriter = StringLocalizer(manager: manager, worker: worker)
+		let rewriter = PrepareStringLocalizer(manager: manager, worker: worker)
 		for file in files {
 			do {
 				let source = try String(contentsOf: file, encoding: .utf8)
@@ -45,7 +45,6 @@ struct Localizator {
 				print("Error: \(error.localizedDescription)")
 			}
 		}
-
 	}
 }
 
