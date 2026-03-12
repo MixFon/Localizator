@@ -92,25 +92,22 @@ public enum TranslationPluralForm: String, Codable, Sendable {
 }
 
 protocol _LocalizationManager {
-	/// Словарь выражение - ключ. Получаем из файла
-	var ruToKey: [String: String] { get }
-
 	func key(for russianString: String) -> String
+	func load(filePath: String)
+	func saveForTranslate(_ russianString: String)
 }
 
-final class LocalizationManager {
+final class LocalizationManager: _LocalizationManager {
 	
-	private var countKeys: Int = 0
-	private(set) var ruToKey: [String: String] = [:]
+	private var ruToKey: [String: String] = [:]
+	private let keyGenerator: _KeyGenerator
+	private var russianStrings: [String] = []
 	
-	/// Словарь сохраненых меток - новое выражение
-	private var translatonKeyToRu: [String: String] = [:]
-
-	init(filePath: String) {
-		load(filePath: filePath)
+	init(keyGenerator: _KeyGenerator) {
+		self.keyGenerator = keyGenerator
 	}
 	
-	private func load(filePath: String) {
+	func load(filePath: String) {
 		let url = URL(fileURLWithPath: filePath)
 		
 		do {
@@ -134,15 +131,20 @@ final class LocalizationManager {
 	}
 
 	func key(for russianString: String) -> String {
-		if let value = ruToKey[russianString] {
-			return value
-		} else {
-			self.countKeys += 1
-			let key = "translation_key_\(countKeys)"
-			self.translatonKeyToRu[key] = russianString
-			return key
+		return ruToKey[russianString] ?? ""
+	}
+	
+	func saveForTranslate(_ russianString: String) {
+		self.russianStrings.append(russianString)
+	}
+	
+	func translating() async {
+			
+		for russianString in self.russianStrings {
+			if ruToKey[russianString] == nil {
+				ruToKey[russianString] = await self.keyGenerator.key(for: russianString)
+			}
 		}
 	}
 }
-
 

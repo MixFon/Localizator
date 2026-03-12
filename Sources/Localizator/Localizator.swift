@@ -3,6 +3,7 @@
 
 import Foundation
 import SwiftParser
+import Translation
 
 @main
 struct Localizator {
@@ -11,24 +12,31 @@ struct Localizator {
 		let rootPath = CommandLine.arguments.count > 1
 		? CommandLine.arguments[1]
 		: FileManager.default.currentDirectoryPath
-//		let filePath = "metro_mobile_translations.json" // Файл в корне проекта
-//		let manager = LocalizationManager(filePath: filePath)
-//		
-//		// Проверим работу
-//		if let key = manager.key(for: "Пополнить") {
-//			print("Ключ для 'Пополнить': \(key)") // mm_metro_replenish
-//		}
-//		
-//		print("Все маппинги:")
-//		for (russian, key) in manager.allMappings() {
-//			print("\(russian) -> \(key)")
-//		}
+		let filePath = "metro_mobile_translations.json" // Файл в корне проекта
+		let keyGenerator = KeyGenerator()
+		let manager = LocalizationManager(keyGenerator: keyGenerator)
+		manager.load(filePath: filePath)
 		let fileScaner = FileScanner()
 		let files = fileScaner.collectSwiftFiles(from: rootPath)
-		let rewriter = StringLocalizer()
+		let worker = StringLiteralWorker()
+		let prepareRewriter = PrepareStringLocalizer(manager: manager, worker: worker)
 		for file in files {
 			do {
-				let source = try String(contentsOf: file)
+				let source = try String(contentsOf: file, encoding: .utf8)
+				let syntaxTree = Parser.parse(source: source)
+				let result = prepareRewriter.visit(syntaxTree)
+				print("File processed")
+			} catch {
+				print("Error: \(error.localizedDescription)")
+			}
+		}
+		
+		await manager.translating()
+		
+		let rewriter = StringLocalizer(manager: manager, worker: worker)
+		for file in files {
+			do {
+				let source = try String(contentsOf: file, encoding: .utf8)
 				let syntaxTree = Parser.parse(source: source)
 				let result = rewriter.visit(syntaxTree)
 				try "\(result)".write(to: file, atomically: true, encoding: .utf8)
@@ -37,7 +45,7 @@ struct Localizator {
 				print("Error: \(error.localizedDescription)")
 			}
 		}
-		
+
 	}
 }
 

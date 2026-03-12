@@ -7,7 +7,7 @@ import PackageDescription
 let package = Package(
 	name: "Localizator",
 	platforms: [
-		.macOS(.v13)
+		.macOS(.v26)
 	],
 	dependencies: [
 		.package(url: "https://github.com/apple/swift-syntax.git", from: "509.0.0")
