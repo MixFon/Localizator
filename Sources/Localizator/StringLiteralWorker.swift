@@ -14,10 +14,16 @@ protocol _StringLiteralWorker {
 	/// Возвращает интероляцию. "Ваши имена \(name1), \(name2) сохранены" -> ["name1", "name2"]
 	func prepareInterpolation(_ node: StringLiteralExprSyntax) -> [String]
 	/// Проверяет, находится ли строковый литерал в методе, который нужно игнорировать
-	func isInsideIgnoredFunction(_ node: StringLiteralExprSyntax) -> Bool
+	func isInsideIgnoredFunction(_ node: SyntaxProtocol) -> Bool
 }
 
 final class StringLiteralWorker: _StringLiteralWorker {
+	
+	private let ignoredFunctionNames: Set<String> = [
+		"print","debugPrint","dump","NSLog",
+		"assert","precondition","fatalError",
+		"available","objc","warning","error"
+	]
 	
 	func prepareText(_ node: StringLiteralExprSyntax) -> String {
 		let segments = node.segments
@@ -54,16 +60,19 @@ final class StringLiteralWorker: _StringLiteralWorker {
 		
 	}
 	
-	func isInsideIgnoredFunction(_ node: StringLiteralExprSyntax) -> Bool {
-		guard
-			let argument = node.parent?.parent?.as(LabeledExprSyntax.self),
-			let call = argument.parent?.parent?.as(FunctionCallExprSyntax.self),
-			let declRef = call.calledExpression.as(DeclReferenceExprSyntax.self)
-		else {
-			return false
-		}
+	func isInsideIgnoredFunction(_ node: SyntaxProtocol) -> Bool {
+		var current = node.parent
 		
-		let name = declRef.baseName.text
-		return name == "print" || name == "debugPrint"
+		while let parent = current {
+			if let call = parent.as(FunctionCallExprSyntax.self),
+			   let decl = call.calledExpression.as(DeclReferenceExprSyntax.self) {
+				let name = decl.baseName.text
+				if ignoredFunctionNames.contains(name) {
+					return true
+				}
+			}
+			current = parent.parent
+		}
+		return false
 	}
 }
