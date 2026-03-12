@@ -12,7 +12,7 @@ struct LocalizationTestView: View {
         NavigationView {
             VStack(spacing: 20) {
 
-                Text("Привет мир")
+                Text("Установите порог баланса для уведомлений или настройте автопополнение.")
 
                 Text("Добро пожаловать в приложение")
 
@@ -20,9 +20,12 @@ struct LocalizationTestView: View {
 				
 				Text("Киличество лет: \(age)!!!")
 
-                Text("Сегодня отличная погода")
+				// Должен игнорировать
+				// "mm_cabinet_troika_auto_payment_balance_threshold": "Порог баланса",
+			
+                Text("Автопополнение")
 
-                Text("Введите данные")
+                Text("Не уходите в ноль")
 
                 Button("Отправить") {
                     print("Кнопка отправить нажата")
@@ -40,11 +43,11 @@ struct LocalizationTestView: View {
 
                 Text("Ошибка загрузки данных")
 
-                Text("Попробуйте снова позже")
+                Text("Откуда")
 
-                Text("Профиль пользователя")
-
-                Text("Изменить пароль")
+                Text("Понятно")
+				
+                Text("Куда")
 
                 Text("Выйти из аккаунта")
 
