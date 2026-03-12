@@ -5,13 +5,17 @@ import Foundation
 import SwiftParser
 import Translation
 
-@main
-struct Localizator {
+final class LocalizationService {
 	
-	static func main() async {
-		let rootPath = CommandLine.arguments.count > 1
-		? CommandLine.arguments[1]
-		: FileManager.default.currentDirectoryPath
+	let rootPath: String
+	let filePath: String
+	
+	init(rootPath: String, filePath: String) {
+		self.rootPath = rootPath
+		self.filePath = filePath
+	}
+	
+	func run() async throws {
 		let filePath = "metro_mobile_translations.json" // Файл в корне проекта
 		let keyGenerator = KeyGenerator(prefix: "mm_velo")
 		let manager = LocalizationManager(keyGenerator: keyGenerator)
@@ -33,13 +37,14 @@ struct Localizator {
 		
 		await manager.translating()
 		
-		let rewriter = PrepareStringLocalizer(manager: manager, worker: worker)
+		let rewriter = StringLocalizer(manager: manager, worker: worker)
 		for file in files {
 			do {
 				let source = try String(contentsOf: file, encoding: .utf8)
 				let syntaxTree = Parser.parse(source: source)
 				let result = rewriter.visit(syntaxTree)
 				try "\(result)".write(to: file, atomically: true, encoding: .utf8)
+				print(result)
 				print("File processed")
 			} catch {
 				print("Error: \(error.localizedDescription)")

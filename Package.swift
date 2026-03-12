@@ -10,14 +10,16 @@ let package = Package(
 		.macOS(.v26)
 	],
 	dependencies: [
-		.package(url: "https://github.com/apple/swift-syntax.git", from: "509.0.0")
+		.package(url: "https://github.com/apple/swift-syntax.git", from: "509.0.0"),
+		.package(url: "https://github.com/apple/swift-argument-parser", from: "1.3.0")
 	],
 	targets: [
 		.executableTarget(
 			name: "Localizator",
 			dependencies: [
 				.product(name: "SwiftSyntax", package: "swift-syntax"),
-				.product(name: "SwiftParser", package: "swift-syntax")
+				.product(name: "SwiftParser", package: "swift-syntax"),
+				.product(name: "ArgumentParser", package: "swift-argument-parser")
 			]
 		)
 	]
