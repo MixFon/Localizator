@@ -1,6 +1,7 @@
 
 import SwiftUI
 
+@available(iOS, deprecated: 12, obsoleted: 13, message: "Этот текст тоже нужно игнорировать")
 struct LocalizationTestView: View {
 
     @State private var name: String = "Алексей"
