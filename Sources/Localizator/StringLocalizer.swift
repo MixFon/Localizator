@@ -10,7 +10,11 @@ import SwiftParser
 
 final class StringLocalizer: SyntaxRewriter {
 	
-	var countKeys: Int = 0
+	private var manager: _LocalizationManager
+	
+	init(namaget: _LocalizationManager) {
+		self.manager = namaget
+	}
 	
 	override func visit(_ node: StringLiteralExprSyntax) -> ExprSyntax {
 		
@@ -37,7 +41,7 @@ final class StringLocalizer: SyntaxRewriter {
 			return super.visit(node)
 		}
 		
-		let key = generateKey()
+		let key = self.manager.key(for: rawText)
 		
 		// Формируем новый вызов
 		let newExpr: String
@@ -51,13 +55,7 @@ final class StringLocalizer: SyntaxRewriter {
 		if let stmt = parsed.statements.first, let expr = stmt.item.as(ExprSyntax.self) {
 			return expr
 		}
-		
 		return super.visit(node)
-	}
-	
-	private func generateKey() -> String {
-		self.countKeys += 1
-		return "translation_key_\(countKeys)"
 	}
 	
 }

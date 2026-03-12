@@ -91,10 +91,21 @@ public enum TranslationPluralForm: String, Codable, Sendable {
 	case other  // Общая форма
 }
 
+protocol _LocalizationManager {
+	/// Словарь выражение - ключ. Получаем из файла
+	var ruToKey: [String: String] { get }
 
-class LocalizationManager {
-	private var reverseDict: [String: String] = [:]
+	func key(for russianString: String) -> String
+}
+
+final class LocalizationManager {
 	
+	private var countKeys: Int = 0
+	private(set) var ruToKey: [String: String] = [:]
+	
+	/// Словарь сохраненых меток - новое выражение
+	private var translatonKeyToRu: [String: String] = [:]
+
 	init(filePath: String) {
 		load(filePath: filePath)
 	}
@@ -113,7 +124,7 @@ class LocalizationManager {
 					case .plural(_):
 						continue
 					case .text(let text):
-						reverseDict[text] = key
+						ruToKey[text] = key
 					}
 				}
 			}
@@ -121,13 +132,16 @@ class LocalizationManager {
 			debugPrint("Ошибка при загрузке или декодировании JSON: \(error.localizedDescription)")
 		}
 	}
-	
-	func key(for russianString: String) -> String? {
-		return reverseDict[russianString]
-	}
-	
-	func allMappings() -> [String: String] {
-		return reverseDict
+
+	func key(for russianString: String) -> String {
+		if let value = ruToKey[russianString] {
+			return value
+		} else {
+			self.countKeys += 1
+			let key = "translation_key_\(countKeys)"
+			self.translatonKeyToRu[key] = russianString
+			return key
+		}
 	}
 }
 
