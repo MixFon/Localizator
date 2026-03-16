@@ -9,16 +9,20 @@ import SwiftSyntax
 
 final class EnumRewriter: SyntaxRewriter {
 
-    let newEnum: EnumDeclSyntax
+	private let enumName: String
+	private let newEnum: EnumDeclSyntax
 
-    init(newEnum: EnumDeclSyntax) {
-        self.newEnum = newEnum
-    }
+	init(enumName: String, newEnum: EnumDeclSyntax) {
+		self.enumName = enumName
+		self.newEnum = newEnum
+	}
 
-    override func visit(_ node: EnumDeclSyntax) -> DeclSyntax {
-        if node.name.text == newEnum.name.text {
-            return DeclSyntax(newEnum)
-        }
-        return super.visit(node)
-    }
+	override func visit(_ node: EnumDeclSyntax) -> DeclSyntax {
+
+		if node.name.text == enumName {
+			return DeclSyntax(newEnum)
+		}
+
+		return super.visit(node)
+	}
 }

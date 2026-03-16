@@ -9,13 +9,21 @@ import SwiftSyntax
 
 final class EnumFinder: SyntaxVisitor {
 
-    var targetEnum: EnumDeclSyntax?
+	private let enumName: String
+	var targetEnum: EnumDeclSyntax?
 
-    override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
-        if node.name.text == "MMTranslationKeys" {
-            targetEnum = node
-            return .skipChildren
-        }
-        return .visitChildren
-    }
+	init(enumName: String) {
+		self.enumName = enumName
+		super.init(viewMode: .sourceAccurate)
+	}
+
+	override func visit(_ node: EnumDeclSyntax) -> SyntaxVisitorContinueKind {
+
+		if node.name.text == enumName {
+			targetEnum = node
+			return .skipChildren
+		}
+
+		return .visitChildren
+	}
 }

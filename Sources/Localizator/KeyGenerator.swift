@@ -10,6 +10,7 @@ import Translation
 
 protocol _KeyGenerator {
 	func key(for string: String) async -> String
+	func snakeToCamel(_ string: String) -> String
 }
 
 final class KeyGenerator: _KeyGenerator {
@@ -47,5 +48,13 @@ final class KeyGenerator: _KeyGenerator {
 		let result = "\(self.prefix)_\(translated.joined(separator: "_"))"
 		debugPrint(normalized, "->", result)
 		return result
+	}
+	
+	func snakeToCamel(_ string: String) -> String {
+		let parts = string.split(separator: "_")
+		guard let first = parts.first else { return string }
+		
+		let tail = parts.dropFirst().map { $0.capitalized }
+		return ([String(first)] + tail).joined()
 	}
 }

@@ -92,15 +92,25 @@ public enum TranslationPluralForm: String, Codable, Sendable {
 }
 
 protocol _LocalizationManager {
+	/// Ключи которых нет в файле
+	var keys: [String] { get }
 	func key(for russianString: String) -> String
 	func load(filePath: String)
+	func translating() async
 	func saveForTranslate(_ russianString: String)
 }
 
 final class LocalizationManager: _LocalizationManager {
 	
+	var keys: [String] {
+		self.newKeys.values.map({$0})
+	}
+	
 	private let prefix: String
 	private var ruToKey: [String: String] = [:]
+	private var commonRuToKey: [String: String] = [:]
+	/// Ключи, которых
+	private var newKeys: [String: String] = [:]
 	private let keyGenerator: _KeyGenerator
 	private var russianStrings: [String] = []
 	/// Префикс ключа для общих переводов
@@ -125,8 +135,12 @@ final class LocalizationManager: _LocalizationManager {
 					case .plural(_):
 						continue
 					case .text(let text):
-						if key.contains(self.prefix) || key.contains(self.commonPrefix) {
-							ruToKey[text] = key
+						if key.contains(self.commonPrefix) {
+							// Сохраняем общие ключи
+							self.commonRuToKey[text] = key
+						} else if key.contains(self.prefix) {
+							// Сохраняем уже имеющиеся ключи с префиксоом
+							self.ruToKey[text] = key
 						}
 					}
 				}
@@ -137,7 +151,8 @@ final class LocalizationManager: _LocalizationManager {
 	}
 
 	func key(for russianString: String) -> String {
-		return ruToKey[russianString] ?? ""
+		// По русскому тексту отправляем ключ
+		return ruToKey[russianString] ?? commonRuToKey[russianString] ?? ""
 	}
 	
 	func saveForTranslate(_ russianString: String) {
@@ -145,10 +160,16 @@ final class LocalizationManager: _LocalizationManager {
 	}
 	
 	func translating() async {
-			
 		for russianString in self.russianStrings {
-			if ruToKey[russianString] == nil {
-				ruToKey[russianString] = await self.keyGenerator.key(for: russianString)
+			if let commonKey = self.commonRuToKey[russianString] {
+				// Насшли общие ключи переводим ключ в кемелкейс (общие ключи mm_metro в камел кейсе)
+				self.commonRuToKey[russianString] = self.keyGenerator.snakeToCamel(commonKey)
+			} else if self.ruToKey[russianString] == nil {
+				// Нет ключа с префиксом сервиса. Значит нам нужно создать новый ключь
+				// Переводим строку на англиский и превращаем в снеккейс
+				let newKey = await self.keyGenerator.key(for: russianString)
+				self.ruToKey[russianString] = newKey
+				self.newKeys[russianString] = newKey
 			}
 		}
 	}
