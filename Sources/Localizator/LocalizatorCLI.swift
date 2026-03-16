@@ -19,8 +19,8 @@ struct LocalizatorCLI: AsyncParsableCommand {
     @Argument(help: "Папка или файл с которой нужно начинать поиск. По умолчанию текущая папка.")
     var path: String?
 
-    @Option(name: .shortAndLong, help: "JSON файл с переводами")
-    var file: String = "metro_mobile_translations.json"
+    @Option(name: .shortAndLong, help: "Путь до пакета MMTranslations, в его ресурсах будет поиск ключей.")
+    var file: String = "../mmtranslation"
 	
 	@Option(name: .shortAndLong, help: "Префикс ключа по которому будут искаться существующие ключи. С него будут начинаться новые ключи")
 	var prefix: String

@@ -18,10 +18,15 @@ final class LocalizationService {
 	}
 	
 	func run() async throws {
-		let filePath = "metro_mobile_translations.json" // Файл в корне проекта
 		let keyGenerator = KeyGenerator(prefix: self.prefix)
 		let manager = LocalizationManager(prefix: self.prefix, keyGenerator: keyGenerator)
-		manager.load(filePath: filePath)
+		
+		let projectRoot = URL(fileURLWithPath: self.filePath)
+		let translationsFile = projectRoot
+			.appendingPathComponent("Sources/MMTranslation/Resources/metro_mobile_translations.json")
+		manager.load(filePath: translationsFile.path)
+		
+		print(translationsFile.path)
 		let fileScaner = FileScanner()
 		let files = fileScaner.collectSwiftFiles(from: rootPath)
 		let worker = StringLiteralWorker()
