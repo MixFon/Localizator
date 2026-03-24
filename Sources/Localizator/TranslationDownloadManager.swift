@@ -20,9 +20,6 @@ public struct MMLanguageTranslates: Codable, Sendable {
 	}
 }
 
-
-// MARK: - MMTranslationsDictionary
-
 public struct MMTranslationsDictionary: Codable, Sendable {
 	let values: [String: TranslationValue]
 
@@ -44,8 +41,6 @@ public struct MMTranslationsDictionary: Codable, Sendable {
 		values[key]
 	}
 }
-
-// MARK: - TranslationValue
 
 public enum TranslationValue: Codable, Sendable {
 	case text(String)
