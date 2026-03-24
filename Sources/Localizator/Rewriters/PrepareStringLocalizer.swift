@@ -19,7 +19,6 @@ final class PrepareStringLocalizer: SyntaxRewriter {
 	}
 	
 	override func visit(_ node: StringLiteralExprSyntax) -> ExprSyntax {
-		// Пропуск: print/отладка, `#Preview`, `PreviewProvider` (см. StringLiteralWorker).
 		if self.worker.isInsideIgnoredFunction(node) {
 			return super.visit(node)
 		}
