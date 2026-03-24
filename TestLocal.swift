@@ -90,5 +90,20 @@ struct LocalizationTestView: View {
 }
 
 #Preview {
-    LocalizationTestView()
+	VStack {
+		Text("Это не нужно переводить")
+		LocalizationTestView()
+	}
 }
+
+#if DEBUG
+struct MMMenuView_Previews: PreviewProvider {
+	static var previews: some View {
+		VStack {
+			Text("И это тоже не нужно переводить")
+			LocalizationTestView()
+		}
+	}
+}
+#endif
+
