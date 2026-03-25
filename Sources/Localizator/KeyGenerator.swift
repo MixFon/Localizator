@@ -40,6 +40,7 @@ final class KeyGenerator: _KeyGenerator {
 				let translatedWord = response.targetText.lowercased()
 					.replacingOccurrences(of: " ", with: "_")
 					.replacingOccurrences(of: "-", with: "_")
+					.strippingBackticksAndQuotes()
 				translated.append(translatedWord)
 			} catch {
 				debugPrint(error.localizedDescription)
@@ -56,5 +57,16 @@ final class KeyGenerator: _KeyGenerator {
 		
 		let tail = parts.dropFirst().map { $0.capitalized }
 		return ([String(first)] + tail).joined()
+	}
+}
+
+private extension String {
+	/// Удаляет `` ` `` и кавычки (Unicode `Quotation_Mark` и ASCII U+0027).
+	func strippingBackticksAndQuotes() -> String {
+		replacingOccurrences(
+			of: "[`\\p{Quotation_Mark}\\u0027]",
+			with: "",
+			options: .regularExpression
+		)
 	}
 }
