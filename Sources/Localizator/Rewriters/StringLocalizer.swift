@@ -19,16 +19,10 @@ final class StringLocalizer: SyntaxRewriter {
 	}
 	
 	override func visit(_ node: StringLiteralExprSyntax) -> ExprSyntax {
-		if self.worker.isInsideIgnoredFunction(node) {
+		if self.worker.shouldSkipStringLiteral(node) {
 			return super.visit(node)
 		}
 		let rawText = self.worker.prepareText(node)
-		
-		// Проверяем наличие русского текста
-		guard rawText.range(of: "[А-Яа-я]", options: .regularExpression) != nil else {
-			return super.visit(node)
-		}
-		
 		let key = self.manager.key(for: rawText)
 		
 		let numberArgs = self.worker.prepareInterpolation(node)

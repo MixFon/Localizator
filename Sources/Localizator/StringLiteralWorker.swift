@@ -13,8 +13,8 @@ protocol _StringLiteralWorker {
 	func prepareText(_ node: StringLiteralExprSyntax) -> String
 	/// Возвращает интероляцию. "Ваши имена \(name1), \(name2) сохранены" -> ["name1", "name2"]
 	func prepareInterpolation(_ node: StringLiteralExprSyntax) -> [String]
-	/// Проверяет, нужно ли пропустить литерал: `print`, `#Preview`, `PreviewProvider`, `#if DEBUG` и т.п.
-	func isInsideIgnoredFunction(_ node: SyntaxProtocol) -> Bool
+	/// Нужно ли не трогать литерал: отладочные контексты (`print`, `#Preview`, …), `#if DEBUG`, мок-строки (`Mock`), или в собранном тексте нет кириллицы.
+	func shouldSkipStringLiteral(_ node: StringLiteralExprSyntax) -> Bool
 }
 
 final class StringLiteralWorker: _StringLiteralWorker {
@@ -60,7 +60,7 @@ final class StringLiteralWorker: _StringLiteralWorker {
 		
 	}
 	
-	func isInsideIgnoredFunction(_ node: SyntaxProtocol) -> Bool {
+	func shouldSkipStringLiteral(_ node: StringLiteralExprSyntax) -> Bool {
 		if isInsidePreviewMacro(node) {
 			return true
 		}
@@ -82,7 +82,22 @@ final class StringLiteralWorker: _StringLiteralWorker {
 			}
 			current = parent.parent
 		}
+		let rawText = prepareText(node)
+		if preparedTextContainsMockSubstring(rawText) {
+			return true
+		}
+		if !preparedTextContainsCyrillic(rawText) {
+			return true
+		}
 		return false
+	}
+	
+	private func preparedTextContainsMockSubstring(_ text: String) -> Bool {
+		text.range(of: "Mock", options: .caseInsensitive) != nil
+	}
+	
+	private func preparedTextContainsCyrillic(_ text: String) -> Bool {
+		text.range(of: "[А-Яа-я]", options: .regularExpression) != nil
 	}
 	
 	/// Литерал внутри ветки `#if DEBUG` / `#elseif DEBUG` (включая вложенные блоки и `#if` внутри выражения).
