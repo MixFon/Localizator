@@ -13,7 +13,7 @@ protocol _StringLiteralWorker {
 	func prepareText(_ node: StringLiteralExprSyntax) -> String
 	/// Возвращает интероляцию. "Ваши имена \(name1), \(name2) сохранены" -> ["name1", "name2"]
 	func prepareInterpolation(_ node: StringLiteralExprSyntax) -> [String]
-	/// Проверяет, нужно ли пропустить литерал: `print`, `#Preview`, `PreviewProvider` и т.п.
+	/// Проверяет, нужно ли пропустить литерал: `print`, `#Preview`, `PreviewProvider`, `#if DEBUG` и т.п.
 	func isInsideIgnoredFunction(_ node: SyntaxProtocol) -> Bool
 }
 
@@ -67,6 +67,9 @@ final class StringLiteralWorker: _StringLiteralWorker {
 		if isInsidePreviewProviderContext(node) {
 			return true
 		}
+		if isInsidePlainIfConfigDebugBranch(node) {
+			return true
+		}
 		var current = node.parent
 		
 		while let parent = current {
@@ -78,6 +81,27 @@ final class StringLiteralWorker: _StringLiteralWorker {
 				}
 			}
 			current = parent.parent
+		}
+		return false
+	}
+	
+	/// Литерал внутри ветки `#if DEBUG` / `#elseif DEBUG` (включая вложенные блоки и `#if` внутри выражения).
+	private func isInsidePlainIfConfigDebugBranch(_ node: SyntaxProtocol) -> Bool {
+		var current: Syntax? = Syntax(fromProtocol: node)
+		while let c = current {
+			if let clause = c.as(IfConfigClauseSyntax.self),
+			   let condition = clause.condition,
+			   ifConfigConditionIsPlainDebug(condition) {
+				return true
+			}
+			current = c.parent
+		}
+		return false
+	}
+	
+	private func ifConfigConditionIsPlainDebug(_ expr: ExprSyntax) -> Bool {
+		if let ref = expr.as(DeclReferenceExprSyntax.self) {
+			return ref.baseName.text == "DEBUG"
 		}
 		return false
 	}
