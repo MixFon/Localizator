@@ -17,6 +17,8 @@ final class LocalizationService {
 	private let pathToJSON: String = "Sources/MMTranslation/Resources/metro_mobile_translations.json"
 	/// Относительный путь к файлу enum ключей внутри пакета MMTranslation.
 	private let pathToKeys: String = "Sources/MMTranslation/Models/ServicesKeys/MMTranslationKeys.swift"
+	/// Имя файла TSV с новыми ключами в каталоге `rootPath`.
+	private let newKeysTSVFileName: String = "new_keys.key"
 
 	/// - Parameters:
 	///   - prefix: Префикс ключей локализации.
@@ -28,7 +30,7 @@ final class LocalizationService {
 		self.filePath = filePath
 	}
 	
-	/// Полный цикл: загрузка переводов, подготовка строк, перевод, замена литералов, запись ключей.
+	/// Полный цикл: загрузка переводов, подготовка строк, перевод, замена литералов, запись ключей и экспорт TSV новых ключей.
 	func run() async throws {
 		let manager = makeLocalizationManager()
 		loadTranslationsJSON(into: manager)
@@ -40,6 +42,7 @@ final class LocalizationService {
 		await manager.translating()
 		runApplyLocalizationPhase(manager: manager, files: files, worker: worker)
 		try writeTranslationKeys(into: manager)
+		try writeNewKeysTSV(from: manager)
 	}
 	
 	/// Абсолютный URL корня пакета MMTranslation.
@@ -107,5 +110,16 @@ final class LocalizationService {
 			prefix: prefix,
 			keys: manager.keys
 		)
+	}
+	
+	/// URL файла `new_keys.key` в корне сканирования (`filePath`).
+	private func newKeysTSVFileURL() -> URL {
+		URL(fileURLWithPath: self.filePath).appendingPathComponent(newKeysTSVFileName)
+	}
+	
+	/// Сохраняет TSV новых ключей (`newKeyValues()`), если они есть; иначе файл не создаётся.
+	private func writeNewKeysTSV(from manager: _LocalizationManager) throws {
+		guard let tsv = manager.newKeyValues() else { return }
+		try tsv.write(to: newKeysTSVFileURL(), atomically: true, encoding: .utf8)
 	}
 }

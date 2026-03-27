@@ -93,6 +93,8 @@ protocol _LocalizationManager {
 	func load(filePath: String)
 	func translating() async
 	func saveForTranslate(_ russianString: String)
+	/// Ключи и значение, которых не было в файле. В формате TSV (tab-separated values)
+	func newKeyValues() -> String?
 }
 
 final class LocalizationManager: _LocalizationManager {
@@ -160,13 +162,31 @@ final class LocalizationManager: _LocalizationManager {
 				// Насшли общие ключи переводим ключ в кемелкейс (общие ключи mm_metro в камел кейсе)
 				self.commonRuToKey[russianString] = self.keyGenerator.snakeToCamel(commonKey)
 			} else if self.ruToKey[russianString] == nil {
-				// Нет ключа с префиксом сервиса. Значит нам нужно создать новый ключь
+				// Нет ключа с префиксом сервиса. Значит нам нужно создать новый ключ
 				// Переводим строку на англиский и превращаем в снеккейс
 				let newKey = await self.keyGenerator.key(for: russianString)
 				self.ruToKey[russianString] = newKey
 				self.newKeys[russianString] = newKey
 			}
 		}
+	}
+	
+	func newKeyValues() -> String? {
+		guard !newKeys.isEmpty else { return nil }
+		var lines: [String] = ["key\tsource_ru"]
+		for (russianText, key) in newKeys.sorted(by: { $0.value < $1.value }) {
+			lines.append("\(Self.tsvEscapedField(key))\t\(Self.tsvEscapedField(russianText))")
+		}
+		return lines.joined(separator: "\n")
+	}
+	
+	/// Убирает табы и переводы строк из ячейки TSV, чтобы строка оставалась одной записью.
+	private static func tsvEscapedField(_ string: String) -> String {
+		string
+			.replacingOccurrences(of: "\t", with: " ")
+			.replacingOccurrences(of: "\r\n", with: " ")
+			.replacingOccurrences(of: "\n", with: " ")
+			.replacingOccurrences(of: "\r", with: " ")
 	}
 }
 
