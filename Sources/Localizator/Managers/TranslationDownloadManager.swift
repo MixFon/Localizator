@@ -109,37 +109,25 @@ final class LocalizationManager: _LocalizationManager {
 	/// Ключи, которых
 	private var newKeys: [String: String] = [:]
 	private let keyGenerator: _KeyGenerator
+	private let jsonLoader: _JsonLoader
 	private var russianStrings: [String] = []
 	/// Префикс ключа для общих переводов
 	private let commonPrefix: String = "mm_metro"
 	
-	init(prefix: String, keyGenerator: _KeyGenerator) {
+	init(prefix: String, keyGenerator: _KeyGenerator, jsonLoader: _JsonLoader) {
 		self.prefix = prefix
 		self.keyGenerator = keyGenerator
+		self.jsonLoader = jsonLoader
 	}
 	
 	func load(filePath: String) {
-		let url = URL(fileURLWithPath: filePath)
-		
 		do {
-			let data = try Data(contentsOf: url)
-			let localization = try JSONDecoder().decode(LocalizationFile.self, from: data)
-			
-			// Берем первую item и русскую локализацию
-			if let ruTranslations = localization.items.first?.translates.first(where: { $0.code == "ru-RU" })?.translations {
-				for (key, value) in ruTranslations.values {
-					switch value {
-					case .plural(_):
-						continue
-					case .text(let text):
-						if key.contains(self.commonPrefix) {
-							// Сохраняем общие ключи
-							self.commonRuToKey[text] = key
-						} else if key.contains(self.prefix) {
-							// Сохраняем уже имеющиеся ключи с префиксоом
-							self.ruToKey[text] = key
-						}
-					}
+			try jsonLoader.load(filePath: filePath) { [weak self] key, text in
+				guard let self else { return }
+				if key.contains(self.commonPrefix) {
+					self.commonRuToKey[text] = key
+				} else if key.contains(self.prefix) {
+					self.ruToKey[text] = key
 				}
 			}
 		} catch {

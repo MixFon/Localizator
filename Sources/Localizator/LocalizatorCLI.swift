@@ -25,16 +25,23 @@ struct LocalizatorCLI: AsyncParsableCommand {
 	@Option(name: .shortAndLong, help: "Префикс ключа по которому будут искаться существующие ключи. С него будут начинаться новые ключи")
 	var prefix: String
 
+    @Flag(name: .shortAndLong, help: "Флаг для поиска дубликатов ключей. По умолчанию false")
+    var duplicates: Bool = false
+
     func run() async throws {
 
         let rootPath = path ?? FileManager.default.currentDirectoryPath
 
-        let service = LocalizationService(
-			prefix: prefix,
-            rootPath: rootPath,
-            filePath: file
-        )
-
-        try await service.run()
+        if duplicates {
+            let dupService = DublicateService(prefix: prefix, filePath: file)
+            try dupService.run()
+		} else {
+			let service = LocalizationService(
+				prefix: prefix,
+				rootPath: rootPath,
+				filePath: file
+			)
+			try await service.run()
+		}
     }
 }

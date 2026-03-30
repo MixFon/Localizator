@@ -53,7 +53,8 @@ final class LocalizationService {
 	/// Создаёт менеджер локализации с генератором ключей.
 	private func makeLocalizationManager() -> _LocalizationManager {
 		let keyGenerator = KeyGenerator(prefix: prefix)
-		return LocalizationManager(prefix: prefix, keyGenerator: keyGenerator)
+		let jsonLoader = JsonLoader()
+		return LocalizationManager(prefix: prefix, keyGenerator: keyGenerator, jsonLoader: jsonLoader)
 	}
 	
 	/// Загружает существующие переводы из JSON в менеджер.
