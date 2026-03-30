@@ -8,11 +8,15 @@
 import Foundation
 import Translation
 
+/// Генерация строковых ключей локализации из русского текста и преобразование имён из snake_case.
 protocol _KeyGenerator {
+	/// Строит уникальный ключ по русской строке: перевод первых слов, суффиксы по плейсхолдерам `%n$s`, при коллизиях — `_v…`.
 	func key(for string: String) async -> String
+	/// Переводит `snake_case` в lowerCamelCase для сегментов, разделённых `_`.
 	func snakeToCamel(_ string: String) -> String
 }
 
+/// Ключ вида `prefix_en_words…` через `TranslationSession` (ru→en), с учётом интерполяций и уникальности.
 final class KeyGenerator: _KeyGenerator {
 	
 	private let session: TranslationSession
@@ -28,6 +32,7 @@ final class KeyGenerator: _KeyGenerator {
 		self.session = TranslationSession(installedSource: source, target: target)
 	}
 	
+	/// Нормализует строку, переводит до пяти первых слов, добавляет `_s1_s2…` по числу `%n$s`, при повторе базы — `_v{k}`.
 	func key(for string: String) async -> String {
 		let placeholderCount = Self.countPercentDollarSPlaceholders(in: string)
 		
@@ -69,13 +74,14 @@ final class KeyGenerator: _KeyGenerator {
 		return result
 	}
 	
-	/// Число вхождений подстрок вида `%1$s`, `%2$s`, …
+	/// Сколько раз в строке встречается шаблон `%` + цифры + `$s` (как в `prepareText` для интерполяций).
 	private static func countPercentDollarSPlaceholders(in string: String) -> Int {
 		guard let regex = try? NSRegularExpression(pattern: "%\\d+\\$s") else { return 0 }
 		let range = NSRange(string.startIndex..., in: string)
 		return regex.numberOfMatches(in: string, options: [], range: range)
 	}
 	
+	/// Первый сегмент без изменений регистра, остальные с заглавной буквы; склеиваются без разделителей.
 	func snakeToCamel(_ string: String) -> String {
 		let parts = string.split(separator: "_")
 		guard let first = parts.first else { return string }
