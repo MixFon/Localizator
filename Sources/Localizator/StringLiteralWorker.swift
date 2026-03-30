@@ -13,7 +13,7 @@ protocol _StringLiteralWorker {
 	func prepareText(_ node: StringLiteralExprSyntax) -> String
 	/// Возвращает интероляцию. "Ваши имена \(name1), \(name2) сохранены" -> ["name1", "name2"]
 	func prepareInterpolation(_ node: StringLiteralExprSyntax) -> [String]
-	/// Нужно ли не трогать литерал: отладочные контексты (`print`, `#Preview`, …), `#if DEBUG`, мок-строки (`Mock`), или в собранном тексте нет кириллицы.
+	/// Нужно ли не трогать литерал: отладочные контексты (`print`, `#Preview`, …), `#if DEBUG`, тип с `DEBUG` в имени, мок-строки (`Mock`), или в собранном тексте нет кириллицы.
 	func shouldSkipStringLiteral(_ node: StringLiteralExprSyntax) -> Bool
 }
 
@@ -70,6 +70,9 @@ final class StringLiteralWorker: _StringLiteralWorker {
 		if isInsidePlainIfConfigDebugBranch(node) {
 			return true
 		}
+		if isInsideNominalTypeWithDebugInName(node) {
+			return true
+		}
 		var current = node.parent
 		
 		while let parent = current {
@@ -119,6 +122,37 @@ final class StringLiteralWorker: _StringLiteralWorker {
 			return ref.baseName.text == "DEBUG"
 		}
 		return false
+	}
+	
+	/// Литерал внутри `struct` / `class` / `enum` / `actor` / `extension`, если имя типа (или расширяемый тип) содержит подстроку `DEBUG` без учёта регистра.
+	private func isInsideNominalTypeWithDebugInName(_ node: SyntaxProtocol) -> Bool {
+		var current: Syntax? = Syntax(fromProtocol: node)
+		while let c = current {
+			if let s = c.as(StructDeclSyntax.self), typeNameContainsDebugSubstring(s.name.text) {
+				return true
+			}
+			if let cl = c.as(ClassDeclSyntax.self), typeNameContainsDebugSubstring(cl.name.text) {
+				return true
+			}
+			if let e = c.as(EnumDeclSyntax.self), typeNameContainsDebugSubstring(e.name.text) {
+				return true
+			}
+			if let a = c.as(ActorDeclSyntax.self), typeNameContainsDebugSubstring(a.name.text) {
+				return true
+			}
+			if let x = c.as(ExtensionDeclSyntax.self) {
+				let extended = x.extendedType.trimmed.description
+				if typeNameContainsDebugSubstring(extended) {
+					return true
+				}
+			}
+			current = c.parent
+		}
+		return false
+	}
+	
+	private func typeNameContainsDebugSubstring(_ name: String) -> Bool {
+		name.range(of: "DEBUG", options: .caseInsensitive) != nil
 	}
 	
 	/// Литерал внутри макроса `#Preview { … }` / `#Preview("…") { … }`.
