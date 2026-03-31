@@ -1,5 +1,5 @@
 //
-//  DublicateFinder.swift
+//  DuplicateFinder.swift
 //  Localizator
 //
 //  Created by Михаил Фокин on 30.03.2026.
@@ -8,7 +8,7 @@
 import Foundation
 
 /// Поиск дубликатов и почти совпадающих русских строк среди ключей с заданным префиксом.
-final class DublicateFinder {
+final class DuplicateFinder {
 	private let prefix: String
 	private let jsonLoader: _JsonLoader
 	/// Все пары ключ → русский текст из JSON (ru-RU, `.text`).
@@ -88,9 +88,7 @@ final class DublicateFinder {
 	}
 	
 	func similarKeyValueLines(maxEditDistance: Int = 2) -> [String] {
-		similarKeyValuePairs(maxEditDistance: maxEditDistance).map { pair in
-			"Δ\(pair.distance)\t\"\(pair.key1)\" -> \"\(pair.text1)\"  \n\t\"\(pair.key2)\" -> \"\(pair.text2)\"\n"
-		}
+		similarKeyValuePairs(maxEditDistance: maxEditDistance).map(Self.similarLine)
 	}
 	
 	func printSimilarKeyValues(maxEditDistance: Int = 2) {
@@ -100,9 +98,15 @@ final class DublicateFinder {
 			return
 		}
 		print("Похожие строки (Левенштейн 1…\(maxEditDistance)), префикс «\(prefix)»:")
-		for line in similarKeyValueLines(maxEditDistance: maxEditDistance) {
+		for line in pairs.map(Self.similarLine) {
 			print(line)
 		}
+	}
+	
+	private static func similarLine(
+		_ pair: (key1: String, text1: String, key2: String, text2: String, distance: Int)
+	) -> String {
+		"Δ\(pair.distance)\t\"\(pair.key1)\" -> \"\(pair.text1)\"  \n\t\"\(pair.key2)\" -> \"\(pair.text2)\"\n"
 	}
 	
 	private static func levenshtein(_ a: String, _ b: String) -> Int {

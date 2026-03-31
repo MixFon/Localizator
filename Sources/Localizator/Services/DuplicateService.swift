@@ -1,5 +1,5 @@
 //
-//  DublicateService.swift
+//  DuplicateService.swift
 //  Localizator
 //
 //  Created by Михаил Фокин on 30.03.2026.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-final class DublicateService {
+final class DuplicateService {
 	/// Префикс для новых ключей и поиска существующих в JSON.
 	private let prefix: String
 	/// Путь к корню пакета MMTranslation (ресурсы и ключи относительно него).
@@ -26,9 +26,9 @@ final class DublicateService {
 	
 	func run() throws {
 		let jsonLoader = JsonLoader()
-		let finder = DublicateFinder(prefix: prefix, jsonLoader: jsonLoader)
+		let finder = DuplicateFinder(prefix: prefix, jsonLoader: jsonLoader)
 		let jsonURL = URL(fileURLWithPath: filePath).appendingPathComponent(pathToJSON)
-		try finder.load(filePath: jsonURL.path(percentEncoded: true))
+		try finder.load(filePath: jsonURL.path)
 		finder.printDuplicateKeyValues()
 		finder.printSimilarKeyValues()
 	}
