@@ -103,7 +103,7 @@ final class LocalizationService {
 	
 	/// Дописывает новые ключи в enum `MMTranslationKeys`.
 	private func writeTranslationKeys(into manager: _LocalizationManager) throws {
-		let keysManager: TranslationKeysManaging = TranslationKeysManager()
+		let keysManager: _EnumManager = EnumManager()
 		let keysFile = mmPackageRootURL.appendingPathComponent(pathToKeys)
 		try keysManager.insertKeys(
 			into: keysFile,

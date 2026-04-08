@@ -32,7 +32,7 @@ final class StringLocalizer: SyntaxRewriter {
 			newExpr = "MMTranslation.text(.\(key))"
 		} else {
 			let args = numberArgs.joined(separator: ", ")
-			newExpr = "MMTranslation.text(.\(key), numbers: \(args))"
+			newExpr = "MMTranslation.text(.\(key), strings: \(args))"
 		}
 		let parsed = Parser.parse(source: newExpr)
 		if let stmt = parsed.statements.first, let expr = stmt.item.as(ExprSyntax.self) {

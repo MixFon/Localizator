@@ -14,6 +14,8 @@ protocol _KeyGenerator {
 	func key(for string: String) async -> String
 	/// Переводит `snake_case` в lowerCamelCase для сегментов, разделённых `_`.
 	func snakeToCamel(_ string: String) -> String
+	/// Дополнительно подсчиываем сколько раз встретились ключи
+	func setKeysOccurrences(kyes: [String])
 }
 
 /// Ключ вида `prefix_en_words…` через `TranslationSession` (ru→en), с учётом интерполяций и уникальности.
@@ -30,6 +32,12 @@ final class KeyGenerator: _KeyGenerator {
 		
 		self.prefix = prefix
 		self.session = TranslationSession(installedSource: source, target: target)
+	}
+	
+	func setKeysOccurrences(kyes: [String]) {
+		for key in kyes {
+			keyOccurrences[key, default: 0] += 1
+		}
 	}
 	
 	/// Нормализует строку, переводит до пяти первых слов, добавляет `_s1_s2…` по числу `%n$s`, при повторе базы — `_v{k}`.
@@ -49,7 +57,7 @@ final class KeyGenerator: _KeyGenerator {
 				let translatedWord = response.targetText.lowercased()
 					.replacingOccurrences(of: " ", with: "_")
 					.replacingOccurrences(of: "-", with: "_")
-					.strippingBackticksAndQuotes()
+					.keepingLettersAndDigitsOnly()
 				translated.append(translatedWord)
 			} catch {
 				debugPrint(error.localizedDescription)
@@ -83,21 +91,13 @@ final class KeyGenerator: _KeyGenerator {
 	
 	/// Первый сегмент без изменений регистра, остальные с заглавной буквы; склеиваются без разделителей.
 	func snakeToCamel(_ string: String) -> String {
-		let parts = string.split(separator: "_")
-		guard let first = parts.first else { return string }
-		
-		let tail = parts.dropFirst().map { $0.capitalized }
-		return ([String(first)] + tail).joined()
+		TranslationKeyNaming.snakeToCamel(string)
 	}
 }
 
 private extension String {
-	/// Удаляет `` ` `` и кавычки (Unicode `Quotation_Mark` и ASCII U+0027).
-	func strippingBackticksAndQuotes() -> String {
-		replacingOccurrences(
-			of: "[`\\p{Quotation_Mark}\\u0027]",
-			with: "",
-			options: .regularExpression
-		)
+	
+	func keepingLettersAndDigitsOnly() -> String {
+		String(filter { $0 == "_" || $0.isLetter || $0.isNumber })
 	}
 }

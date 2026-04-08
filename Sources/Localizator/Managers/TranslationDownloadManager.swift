@@ -145,9 +145,11 @@ final class LocalizationManager: _LocalizationManager {
 	}
 	
 	func translating() async {
+		// Закидываем ключи, чтобы не было дублей при генерации новыз ключей.
+		self.keyGenerator.setKeysOccurrences(kyes: self.ruToKey.values.map(\.self))
 		for russianString in self.russianStrings {
 			if let commonKey = self.commonRuToKey[russianString] {
-				// Насшли общие ключи переводим ключ в кемелкейс (общие ключи mm_metro в камел кейсе)
+				// Нашли общие ключи переводим ключ в кемелкейс (общие ключи mm_metro в камел кейсе)
 				self.commonRuToKey[russianString] = self.keyGenerator.snakeToCamel(commonKey)
 			} else if self.ruToKey[russianString] == nil {
 				// Нет ключа с префиксом сервиса. Значит нам нужно создать новый ключ
