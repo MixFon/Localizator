@@ -16,8 +16,9 @@ final class JsonLoader: _JsonLoader {
 		let url = URL(fileURLWithPath: filePath)
 		let data = try Data(contentsOf: url)
 		let localization = try JSONDecoder().decode(LocalizationFile.self, from: data)
-		
-		if let ruTranslations = localization.items.first?.translates.first(where: { $0.code == "ru-RU" })?.translations {
+
+		for item in localization.items {
+			guard let ruTranslations = item.translates.first(where: { $0.code == "ru-RU" })?.translations else { continue }
 			for (key, value) in ruTranslations.values {
 				switch value {
 				case .plural:
@@ -33,9 +34,11 @@ final class JsonLoader: _JsonLoader {
 		let url = URL(fileURLWithPath: filePath)
 		let data = try Data(contentsOf: url)
 		let localization = try JSONDecoder().decode(LocalizationFile.self, from: data)
-		guard let ruTranslations = localization.items.first?.translates.first(where: { $0.code == "ru-RU" })?.translations else {
-			return []
+		var keys = Set<String>()
+		for item in localization.items {
+			guard let ruTranslations = item.translates.first(where: { $0.code == "ru-RU" })?.translations else { continue }
+			keys.formUnion(ruTranslations.values.keys)
 		}
-		return Set(ruTranslations.values.keys)
+		return keys
 	}
 }

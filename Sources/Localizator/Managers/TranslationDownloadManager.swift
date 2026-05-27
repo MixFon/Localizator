@@ -47,20 +47,24 @@ public enum TranslationValue: Codable, Sendable {
 	case plural([TranslationPluralForm: String])
 
 	public init(from decoder: Decoder) throws {
-		let container = try decoder.singleValueContainer()
-		if let dict = try? container.decode([String: String].self) {
-			let mapped: [TranslationPluralForm: String] = Dictionary(
-				uniqueKeysWithValues: dict.compactMap { key, value -> (TranslationPluralForm, String)? in
-					guard let form = TranslationPluralForm(rawValue: key) else { return nil }
-					return (form, value)
+		// Определяем тип значения через KeyedContainer — это отдельный контейнер,
+		// не влияющий на singleValueContainer ниже. Нужно для корректной обработки
+		// null-значений в plural (напр. "two": null), которые ломают decode([String: String]).
+		if let keyed = try? decoder.container(keyedBy: _AnyStringKey.self) {
+			var mapped: [TranslationPluralForm: String] = [:]
+			for key in keyed.allKeys {
+				guard let form = TranslationPluralForm(rawValue: key.stringValue) else { continue }
+				if let value = try keyed.decodeIfPresent(String.self, forKey: key) {
+					mapped[form] = value
 				}
-			)
-			self = .plural(mapped)
-			return
-		} else {
-			let stringValue = try container.decode(String.self)
-			self = .text(stringValue)
+			}
+			if !mapped.isEmpty {
+				self = .plural(mapped)
+				return
+			}
 		}
+		let container = try decoder.singleValueContainer()
+		self = .text(try container.decode(String.self))
 	}
 
 	public func encode(to encoder: Encoder) throws {
@@ -180,3 +184,9 @@ final class LocalizationManager: _LocalizationManager {
 	}
 }
 
+private struct _AnyStringKey: CodingKey {
+	let stringValue: String
+	init?(stringValue: String) { self.stringValue = stringValue }
+	var intValue: Int? { nil }
+	init?(intValue: Int) { nil }
+}
