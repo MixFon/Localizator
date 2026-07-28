@@ -23,39 +23,50 @@ CLI для автоматизации локализации Swift-кода в �
 - macOS 26+ (см. `Package.swift`)
 - Swift 6.2+
 
-## Сборка
+## Сборка и установка
 
-Из корня репозитория:
+Скрипт `install.sh` собирает release-бинарник и копирует его в каталог из `PATH`, чтобы вызывать `localizator` из любой точки системы:
+
+```bash
+./install.sh
+```
+
+По умолчанию бинарник ставится в `~/.local/bin/localizator`. Другая папка:
+
+```bash
+INSTALL_DIR=/usr/local/bin ./install.sh
+```
+
+После установки:
+
+```bash
+localizator --help
+```
+
+Если команда не находится, добавьте каталог в `PATH` (например в `~/.zshrc`):
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+### Сборка вручную
 
 ```bash
 swift build -c release
 ```
 
-Готовый бинарник:
+Готовый бинарник: `.build/release/Localizator`. Отладочная сборка: `swift build` → `.build/debug/Localizator`.
 
-```text
-.build/release/Localizator
-```
-
-Отладочная сборка: `swift build` → `.build/debug/Localizator`.
-
-## Запуск без установки
-
-Из каталога пакета:
+### Запуск без установки
 
 ```bash
 swift run Localizator --help
-```
-
-С явной подкомандой (эквивалентно вызову по умолчанию):
-
-```bash
 swift run Localizator localize --prefix <префикс> [путь]
 ```
 
 `путь` — необязательный аргумент: каталог или файл для сканирования; если не указан, используется текущая рабочая директория.
 
-## Использование собранного бинарника
+## Использование
 
 Общие опции для подкоманд, которые работают с MMTranslation:
 
@@ -68,35 +79,14 @@ swift run Localizator localize --prefix <префикс> [путь]
 
 ```bash
 # Локализация: сканировать текущую папку
-./.build/release/Localizator --prefix my_prefix
+localizator --prefix my_prefix
 
 # Явно подкоманда и свой каталог исходников
-./.build/release/Localizator localize --prefix my_prefix --file /path/to/MMTranslation /path/to/Sources
+localizator localize --prefix my_prefix --file /path/to/MMTranslation /path/to/Sources
 
 # Поиск дубликатов в JSON
-./.build/release/Localizator duplicates --prefix my_prefix --file /path/to/MMTranslation
+localizator duplicates --prefix my_prefix --file /path/to/MMTranslation
 
 # Актуализация enum по ключам из JSON
-./.build/release/Localizator actualization --prefix my_prefix --file /path/to/MMTranslation
+localizator actualization --prefix my_prefix --file /path/to/MMTranslation
 ```
-
-## Куда положить бинарник для быстрого доступа
-
-Удобные варианты на macOS:
-
-1. **`~/bin` или `~/.local/bin`** — создайте каталог при необходимости, скопируйте бинарник и добавьте путь в `PATH` в `~/.zshrc`:
-   ```bash
-   mkdir -p ~/bin
-   cp .build/release/Localizator ~/bin/
-   echo 'export PATH="$HOME/bin:$PATH"' >> ~/.zshrc
-   ```
-   После перезапуска оболочки команда доступна как `Localizator`.
-
-2. **`/usr/local/bin`** (нужны права администратора) — один раз скопировать туда; каталог часто уже в `PATH`.
-
-3. **Симлинк** на бинарник в уже существующем каталоге из `PATH` — удобно, если не хотите дублировать файл при пересборке:
-   ```bash
-   ln -sf /полный/путь/к/Localizator ~/bin/Localizator
-   ```
-
-Для постоянного использования в разных проектах предпочтительны **отдельный каталог в домашней директории + `PATH`** или **симлинк**: обновление сводится к пересборке и копированию/перезаписи одного файла.
